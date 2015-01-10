@@ -117,27 +117,17 @@ class Set1:
 	
 	## Task 3
         def is_english(self,engtext,accuracy=4):
-		# if not contains non-printable chars
-		#printset = set(string.printable)
-		#if not set(engtext).issubset(printset):
-		#	return False	
-                
 		#ETAOIN SHRDLU :)
 		mostused = set([' ','e','t','a','o','i','n','s','h','r','d','l','u'])
 		count = Counter(engtext)
 		common = count.most_common(accuracy)
 		if ( all(cm[0] in mostused for cm in common) ):
-		#if ( all(cm[0] in mostused for cm in common) and
-		#	any(cm[0] == ' ' for cm in common) ):
-			# that one is good for at least several sentences
-			# in case of single words omit it
 			return True
 		return False
 	
         ## Task 4
 	def find_xor(self,xordStr,xorLen=2,accuracy=13):
 		keyLen = 16**xorLen
-		# for bigger keyLen theoretically lrange can be used
                 while accuracy:
                     key = []
                     for x in xrange(0x01,keyLen):
@@ -146,7 +136,6 @@ class Set1:
                             decodedHex = self.xor_hex(xordStr,xr)
                             decodedHex = self.hex2plain(decodedHex)
                             if self.is_english(decodedHex,accuracy):
-                                    #return xr, decodedHex
                                     key.append(xr)
                     if key:
                             return key, decodedHex

@@ -169,8 +169,7 @@ class Cryptopals:
             return None,None
         
         ## Task 7
-        def AES_ECB_decrypt(self,base64text,key):
-            text = base64text.decode("base64")
+        def AES_ECB_decrypt(self,text,key):
             # padding
             hexpadded = self.PKS7(text.encode("hex"),len(key))
             text = hexpadded.decode("hex")
@@ -179,14 +178,13 @@ class Cryptopals:
         
         def AES_ECB_encrypt(self,text,key):
             aes = AES.new(key,AES.MODE_ECB)
-            text = aes.encrypt(text)
-            return text.encode("base64")
+            return aes.encrypt(text)
             
         ## Task 8
-        def detect_ECB(self,ciphertexts):
+        def detect_ECB(self,hexciphertexts):
             max = 0
             cmax = 0
-            for c in ciphertexts:
+            for c in hexciphertexts:
                 chunks = self.list_of_chunks(c,2)
                 count = Counter(chunks)
                 common = count.most_common(1)
@@ -211,5 +209,13 @@ class Cryptopals:
         
         
         ## Task 10
-        def CBC_mode(self):
-            return
+        def AES_CBC_decrypt(self,text,BLOCK_SIZE,IV,key):
+            text = self.list_of_chunks(text,BLOCK_SIZE)
+            previous = IV
+            result = []
+            for block in text:
+                decrypted = self.AES_ECB_decrypt(block,key)
+                plaintext = self.xor_plain(decrypted,previous)
+                previous = block
+                result.append(plaintext)
+            return ''.join(result)

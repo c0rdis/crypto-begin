@@ -4,10 +4,11 @@
 # For edutainmental purposes only!
 # c0rdis, 2015
 
+from itertools import product
 from string import printable
 from collections import Counter
-import operator
-import itertools
+from Crypto import Random
+from Crypto.Cipher import AES
 
 
 ## CUSTOM CLASS FOR CRYPTOPALS	
@@ -38,14 +39,6 @@ class Set1:
 		elif len(str)-len(xorkey) < 0:
                     xorkey = xorkey[:len(str)]
 		return ''.join(chr(ord(a) ^ ord(b)) for a,b in zip(str,xorkey))
-            
-        # find the correct accuracy value for the best XOR key bruteforcing
-	def adjust_accuracy(self,str):
-                accuracy = 13
-                while self.is_english(str,accuracy) is False:
-                        print accuracy
-                        accuracy -= 1
-                return accuracy
             
         # break a string into list of chunks of fixed length
 	def list_of_chunks(self,str,chunkLen):
@@ -100,7 +93,6 @@ class Set1:
 				possible_len = (posLen,normalized)
 		return possible_len[0]
 	
-	
 
 # ----------------------------------------------- #    
 #                  Solutions                      #
@@ -117,17 +109,27 @@ class Set1:
 	
 	## Task 3
         def is_english(self,engtext,accuracy=4):
+		# if not contains non-printable chars
+		#printset = set(string.printable)
+		#if not set(engtext).issubset(printset):
+		#	return False	
+                
 		#ETAOIN SHRDLU :)
 		mostused = set([' ','e','t','a','o','i','n','s','h','r','d','l','u'])
 		count = Counter(engtext)
 		common = count.most_common(accuracy)
 		if ( all(cm[0] in mostused for cm in common) ):
+		#if ( all(cm[0] in mostused for cm in common) and
+		#	any(cm[0] == ' ' for cm in common) ):
+			# that one is good for at least several sentences
+			# in case of single words omit it
 			return True
 		return False
 	
         ## Task 4
 	def find_xor(self,xordStr,xorLen=2,accuracy=13):
 		keyLen = 16**xorLen
+		# for bigger keyLen theoretically lrange can be used
                 while accuracy:
                     key = []
                     for x in xrange(0x01,keyLen):
@@ -136,6 +138,7 @@ class Set1:
                             decodedHex = self.xor_hex(xordStr,xr)
                             decodedHex = self.hex2plain(decodedHex)
                             if self.is_english(decodedHex,accuracy):
+                                    #return xr, decodedHex
                                     key.append(xr)
                     if key:
                             return key, decodedHex
@@ -168,7 +171,7 @@ class Set1:
             guessedLen = self.find_xor_len(text)
             # compose a list of all possible keys and make it flat
             possibleKeys = [self.find_vigenere_key(text,gLen) for gLen in guessedLen]
-            finalSet = [''.join(combo) for fixedLen in possibleKeys for combo in itertools.product(*fixedLen)]
+            finalSet = [''.join(combo) for fixedLen in possibleKeys for combo in product(*fixedLen)]
             # decrypted must be all printable
             for key in finalSet:
                 decrypted = self.xor_hex(text.encode("hex"),key).decode('hex')
@@ -176,6 +179,26 @@ class Set1:
                     return key,decrypted
             return None,None
         
-        
+        ## Task 7
+        def AES_ECB(self,base64text,key):
+            BLOCK_SIZE = 16
+            text = base64text.decode("base64")
+            IV = Random.new().read(BLOCK_SIZE)
+            aes = AES.new(key,AES.MODE_ECB,IV)
+            return aes.decrypt(text)
+            
+        ## Task 8
+        def detect_ECB(self,ciphertexts):
+            max = 0
+            cmax = 0
+            for c in ciphertexts:
+                chunks = self.list_of_chunks(c,2)
+                count = Counter(chunks)
+                common = count.most_common(1)
+                cur = common[0][1]
+                if max < cur:
+                    max = cur
+                    cmax = c
+            return cmax,max
         
         
